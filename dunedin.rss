@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
-    <title>Dunedin Practical Weather</title>
-    <link>https://example.invalid/</link>
+    <title>Company Bay Practical Weather</title>
+    <link>https://open-meteo.com/</link>
     <description>Auto-generated for DAKboard</description>
-    <lastBuildDate>Thu, 07 May 2026 22:53:12 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 07 May 2026 23:44:29 +0000</lastBuildDate>
     <item>
-      <title>Dunedin now: 13°C (feels 13°C) • Wind 9 km/h (gust 20) • RH 95%</title>
+      <title>Now: 13°  12pm: 14°  1pm: 15°  2pm: 14°  3pm: 14° | 10% (0)  4pm: 13° | 37% (0)  5pm: 12° | 74% (0.1)  6pm: 12° | 100% (1.6)  7pm: 11° | 100% (3.7)</title>
       <link>https://open-meteo.com/</link>
-      <description>Dunedin now: 13°C (feels 13°C) • Wind 9 km/h (gust 20) • RH 95%</description>
-      <pubDate>Thu, 07 May 2026 22:53:12 +0000</pubDate>
+      <description>Now: 13°  12pm: 14°  1pm: 15°  2pm: 14°  3pm: 14° | 10% (0)  4pm: 13° | 37% (0)  5pm: 12° | 74% (0.1)  6pm: 12° | 100% (1.6)  7pm: 11° | 100% (3.7)</description>
+      <pubDate>Thu, 07 May 2026 23:44:29 +0000</pubDate>
     </item>
   </channel>
 </rss>
