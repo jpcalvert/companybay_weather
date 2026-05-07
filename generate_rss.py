@@ -3,8 +3,8 @@ import json
 import urllib.request
 from datetime import datetime, timezone
 
-LAT = -45.8788
-LON = 170.5028
+LAT = -45.858
+LON = 170.601
 TZ  = "Pacific/Auckland"
 
 OUT_FILE = "dunedin.rss"
