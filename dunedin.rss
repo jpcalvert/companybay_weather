@@ -4,12 +4,12 @@
     <title>Dunedin Practical Weather</title>
     <link>https://example.invalid/</link>
     <description>Auto-generated for DAKboard</description>
-    <lastBuildDate>Thu, 07 May 2026 13:29:26 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 07 May 2026 15:43:00 +0000</lastBuildDate>
     <item>
-      <title>Dunedin now: 11°C (feels 10°C) • Wind 3 km/h (gust 13) • RH 94%</title>
+      <title>Dunedin now: 10°C (feels 9°C) • Wind 3 km/h (gust 6) • RH 99%</title>
       <link>https://open-meteo.com/</link>
-      <description>Dunedin now: 11°C (feels 10°C) • Wind 3 km/h (gust 13) • RH 94%</description>
-      <pubDate>Thu, 07 May 2026 13:29:26 +0000</pubDate>
+      <description>Dunedin now: 10°C (feels 9°C) • Wind 3 km/h (gust 6) • RH 99%</description>
+      <pubDate>Thu, 07 May 2026 15:43:00 +0000</pubDate>
     </item>
   </channel>
 </rss>
