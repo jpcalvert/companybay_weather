@@ -127,7 +127,7 @@ def build_line(data: dict) -> str:
     minmax_str = f"{y:.0f} - {z:.0f}" if (y is not None and z is not None) else "— - —"
     b_str = fmt_mm(float(b)) if b is not None else "0"
 
-    return f"{icon} Now (new): {now_str} °C (min/max: {minmax_str} °C) ||| Rain: {a:.0f} % ({b_str} mm)"
+    return f"{icon} Now: {now_str} °C (min/max: {minmax_str} °C) ||| Rain: {a:.0f} % ({b_str} mm)"
 
 def write_rss(line: str):
     now = datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S %z")
