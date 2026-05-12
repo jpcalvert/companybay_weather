@@ -48,10 +48,19 @@ def fmt_rain_segment(prob: float | None, mm: float | None) -> str:
         return f" | {prob:.0f}%"
     return f" | {prob:.0f}% {fmt_mm(mm_val)}mm"
 
+
+from datetime import timedelta
+
+def iso_hour_key(dt) -> str:
+    return dt.strftime("%Y-%m-%dT%H:00")
+
+def fmt_mm(mm: float) -> str:
+    return f"{mm:.1f}".rstrip("0").rstrip(".")
+
+
 def build_line(data: dict) -> str:
     tz = ZoneInfo(TZ_NAME)
     now_local = datetime.now(tz)
-    today = now_local.date()
 
     hourly = data.get("hourly", {}) or {}
     times = hourly.get("time", []) or []
@@ -64,22 +73,42 @@ def build_line(data: dict) -> str:
     def get(arr, i):
         return arr[i] if i is not None and 0 <= i < len(arr) else None
 
-    # NOW = current hour slot
+    # NOW (current hour slot)
     now_hour = now_local.replace(minute=0, second=0, microsecond=0)
-    now_key = now_hour.strftime("%Y-%m-%dT%H:00")
-    now_i = idx_by_time.get(now_key)
+    now_i = idx_by_time.get(iso_hour_key(now_hour))
     now_x = get(feels, now_i)
 
-    # Window = today 08:00..19:00 (inclusive)
+    now_str = f"{now_x:.0f}" if now_x is not None else "—"
+
+    # Decide window: DAY 07:00–19:00, NIGHT 19:00–07:00 (crosses midnight)
+    hour = now_local.hour
+
+    is_day = (hour >= 7) and (hour < 19)
+    icon = "☀️" if is_day else "🌙"
+
+    if is_day:
+        start = now_local.replace(hour=7, minute=0, second=0, microsecond=0)
+        end = now_local.replace(hour=19, minute=0, second=0, microsecond=0)
+    else:
+        if hour >= 19:
+            # night starts today 19:00, ends tomorrow 07:00
+            start = now_local.replace(hour=19, minute=0, second=0, microsecond=0)
+            end = (start + timedelta(days=1)).replace(hour=7)
+        else:
+            # after midnight before 07:00: night started yesterday 19:00, ends today 07:00
+            end = now_local.replace(hour=7, minute=0, second=0, microsecond=0)
+            start = (end - timedelta(days=1)).replace(hour=19)
+
+    # Collect hourly indices in [start, end] (inclusive start, inclusive end hour)
     window_indices = []
-    for h in range(8, 20):  # 8..19
-        dt = datetime.combine(today, datetime.min.time(), tzinfo=tz).replace(hour=h)
-        key = dt.strftime("%Y-%m-%dT%H:00")
-        i = idx_by_time.get(key)
+    dt = start
+    while dt <= end:
+        i = idx_by_time.get(iso_hour_key(dt))
         if i is not None:
             window_indices.append(i)
+        dt += timedelta(hours=1)
 
-    # Aggregate stats
+    # Aggregate
     window_feels = [get(feels, i) for i in window_indices]
     window_feels = [v for v in window_feels if v is not None]
 
@@ -89,20 +118,16 @@ def build_line(data: dict) -> str:
     window_precip = [get(precip, i) for i in window_indices]
     window_precip = [v for v in window_precip if v is not None]
 
-    # Defaults if data missing
     y = min(window_feels) if window_feels else None
     z = max(window_feels) if window_feels else None
+
     a = max(window_pop) if window_pop else 0
     b = max(window_precip) if window_precip else 0
 
-    # Format (keep it clean)
-    now_str = f"{now_x:.0f}" if now_x is not None else "—"
     minmax_str = f"{y:.0f} - {z:.0f}" if (y is not None and z is not None) else "— - —"
+    b_str = fmt_mm(float(b)) if b is not None else "0"
 
-    # mm formatting: 0.0 -> 0, 0.7 -> 0.7, 2.0 -> 2
-    b_str = f"{float(b):.1f}".rstrip("0").rstrip(".") if b is not None else "0"
-
-    return f"Now: {now_str} °C (min/max: {minmax_str} °C) ||| Rain: {a:.0f} % ({b_str} mm)"
+    return f"{icon} Now (new): {now_str} °C (min/max: {minmax_str} °C) ||| Rain: {a:.0f} % ({b_str} mm)"
 
 def write_rss(line: str):
     now = datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S %z")
