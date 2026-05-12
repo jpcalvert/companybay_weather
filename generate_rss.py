@@ -102,7 +102,7 @@ def build_line(data: dict) -> str:
     # mm formatting: 0.0 -> 0, 0.7 -> 0.7, 2.0 -> 2
     b_str = f"{float(b):.1f}".rstrip("0").rstrip(".") if b is not None else "0"
 
-    return f"Now: {now_str} °C ||| Min/Max: {minmax_str} °C ||| Rain: {a:.0f} % ({b_str} mm)"
+    return f"Now: {now_str} °C (min/max: {minmax_str} °C) ||| Rain: {a:.0f} % ({b_str} mm)"
 
 def write_rss(line: str):
     now = datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S %z")
