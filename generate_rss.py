@@ -35,20 +35,9 @@ def fmt_mm(mm: float) -> str:
 
 
 def build_line(data: dict) -> str:
-    """
-    Day/night adjustment, using REMAINING window from NOW until boundary:
-      - Day: from current hour -> 7pm
-      - Night: from current hour -> 7am
-    Output format:
-      ☀️ Now: X °C (min/max: Y - Z °C) ||| Rain: A % (B mm)
-    Where:
-      X = current feels-like
-      Y/Z = min/max feels-like over the remaining window
-      A = max rain probability (%) over the remaining window
-      B = max precip (mm) over the remaining window
-    """
-    tz = ZoneInfo(TZ_NAME)
-    now_local = datetime.now(tz)
+    # Compute local "now" from Open-Meteo's utc offset (avoids ZoneInfo/tzdata issues)
+    offset_seconds = int(data.get("utc_offset_seconds", 0))
+    now_local = (datetime.now(timezone.utc) + timedelta(seconds=offset_seconds)).replace(tzinfo=None)
 
     hourly = data.get("hourly", {}) or {}
     times = hourly.get("time", []) or []
@@ -61,29 +50,32 @@ def build_line(data: dict) -> str:
     def get(arr, i):
         return arr[i] if i is not None and 0 <= i < len(arr) else None
 
-    # Current hour slot
+    def iso_hour_key(dt: datetime) -> str:
+        return dt.strftime("%Y-%m-%dT%H:00")
+
+    def fmt_mm(mm: float) -> str:
+        return f"{mm:.1f}".rstrip("0").rstrip(".")
+
+    # Current hour slot (local)
     now_hour = now_local.replace(minute=0, second=0, microsecond=0)
     now_i = idx_by_time.get(iso_hour_key(now_hour))
-
     now_x = get(feels, now_i)
     now_str = f"{now_x:.0f}" if now_x is not None else "—"
 
     hour = now_local.hour
 
-    # Determine day vs night
+    # Day vs night based on local hour
     is_day = (hour >= 7) and (hour < 19)
     icon = "☀️" if is_day else "🌙"
     boundary_label = "7pm" if is_day else "7am"
 
-    # Remaining window start/end
+    # Remaining window start/end (local)
     start = now_hour
     if is_day:
         end = now_local.replace(hour=19, minute=0, second=0, microsecond=0)
     else:
         if hour >= 19:
-            end = (now_local + timedelta(days=1)).replace(
-                hour=7, minute=0, second=0, microsecond=0
-            )
+            end = (now_local + timedelta(days=1)).replace(hour=7, minute=0, second=0, microsecond=0)
         else:
             end = now_local.replace(hour=7, minute=0, second=0, microsecond=0)
 
@@ -96,7 +88,6 @@ def build_line(data: dict) -> str:
             window_indices.append(i)
         dt += timedelta(hours=1)
 
-    # Aggregate
     window_feels = [get(feels, i) for i in window_indices]
     window_feels = [v for v in window_feels if v is not None]
 
@@ -114,10 +105,7 @@ def build_line(data: dict) -> str:
     minmax_str = f"{y:.0f} - {z:.0f}" if (y is not None and z is not None) else "— - —"
     b_str = fmt_mm(float(b)) if b is not None else "0"
 
-    return (
-        f"{icon} Now: {now_str} °C (to {boundary_label} min/max: {minmax_str} °C) "
-        f"||| Rain: {a:.0f} % ({b_str} mm)"
-    )
+    return f"{icon} Now: {now_str} °C ||| Now to {boundary_label}: {minmax_str} °C (min/max) | 🌧️ {a:.0f} % ({b_str} mm)"
 
 
 def write_rss(line: str):
