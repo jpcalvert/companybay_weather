@@ -88,6 +88,13 @@ def build_line(data: dict) -> str:
             window_indices.append(i)
         dt += timedelta(hours=1)
 
+    
+    #TEMP DEBUGGING: START
+    #print("DEBUG now_local:", now_local)
+    #print("DEBUG start:", start, "end:", end)
+    #print("DEBUG boundary_label:", boundary_label, "is_day:", is_day)
+    #TEMP DEBUGGING: END
+    
     window_feels = [get(feels, i) for i in window_indices]
     window_feels = [v for v in window_feels if v is not None]
 
@@ -102,10 +109,11 @@ def build_line(data: dict) -> str:
     a = max(window_pop) if window_pop else 0
     b = max(window_precip) if window_precip else 0
 
-    minmax_str = f"{y:.0f} - {z:.0f}" if (y is not None and z is not None) else "— - —"
+    minmax_str = f"{y:.0f} / {z:.0f}" if (y is not None and z is not None) else "— - —"
     b_str = fmt_mm(float(b)) if b is not None else "0"
 
-    return f"{icon} Now: {now_str} °C ||| Now to {boundary_label}: {minmax_str} °C (min/max) | 🌧️ {a:.0f} % ({b_str} mm)"
+    rain_part = "" if a <= 0 else f" | 🌧️ {a:.0f} % ({b_str} mm)"
+    return f"{icon} Now: {now_str} °C ||| Now to {boundary_label}: {minmax_str} °C (min/max){rain_part}"
 
 
 def write_rss(line: str):
