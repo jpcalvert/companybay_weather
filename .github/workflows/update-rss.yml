@@ -2,7 +2,7 @@ name: Update Dunedin RSS
 
 on:
   schedule:
-    - cron: "*/7 * * * *"   # every 7 minutes (UTC)
+    - cron: "4/10 * * * *"   # every 10 minutes (UTC)
   workflow_dispatch:
 
 permissions:
