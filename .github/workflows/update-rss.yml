@@ -2,8 +2,12 @@ name: Update Dunedin RSS
 
 on:
   schedule:
-    - cron: "4/10 * * * *"   # every 10 minutes (UTC)
+    - cron: "4/10 * * * *"
   workflow_dispatch:
+
+concurrency:
+  group: rss-update
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -12,21 +16,40 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Generate RSS
         run: python generate_rss.py
 
-      - name: Commit and push if changed
+      - name: Commit and push if changed (rebase + retry)
         run: |
+          set -e
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
           git add dunedin.rss
-          git diff --cached --quiet || git commit -m "Update dunedin.rss"
-          git push
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Update dunedin.rss"
+
+          for i in 1 2 3; do
+            git pull --rebase origin main || true
+            if git push; then
+              echo "Push succeeded."
+              exit 0
+            fi
+            echo "Push failed; retrying ($i/3)..."
+            sleep 5
+          done
+
+          echo "Push failed after retries."
+          exit 1
