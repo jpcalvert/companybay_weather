@@ -1,8 +1,8 @@
 name: Update Dunedin RSS
 
 on:
-  schedule:
-    - cron: "4/10 * * * *"
+  #schedule:
+  #  - cron: "4/10 * * * *"
   workflow_dispatch:
 
 concurrency:
