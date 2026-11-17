@@ -13,7 +13,9 @@ OUT_FILE = "dunedin.rss"
 
 
 def fetch_open_meteo():
-    # Hourly gives us: feels-like (apparent), rain probability, and precip (mm)
+    import time
+    import urllib.error
+
     url = (
         "https://api.open-meteo.com/v1/forecast"
         f"?latitude={LAT}&longitude={LON}"
@@ -21,8 +23,37 @@ def fetch_open_meteo():
         f"&timezone={TZ_NAME}"
         "&temperature_unit=celsius"
     )
-    with urllib.request.urlopen(url, timeout=15) as r:
-        return json.loads(r.read().decode("utf-8"))
+
+    max_attempts = 4
+
+    for attempt in range(1, max_attempts + 1):
+        try:
+            print(f"Fetching Open-Meteo (attempt {attempt}/{max_attempts})...")
+
+            request = urllib.request.Request(
+                url,
+                headers={
+                    "User-Agent": "companybay-weather-dashboard/1.0"
+                }
+            )
+
+            with urllib.request.urlopen(request, timeout=30) as response:
+                return json.loads(response.read().decode("utf-8"))
+
+        except (
+            urllib.error.URLError,
+            urllib.error.HTTPError,
+            TimeoutError,
+            ConnectionError
+        ) as exc:
+            print(f"Open-Meteo request failed: {exc}")
+
+            if attempt == max_attempts:
+                raise
+
+            wait_seconds = 5 * (2 ** (attempt - 1))
+            print(f"Retrying in {wait_seconds} seconds...")
+            time.sleep(wait_seconds)
 
 
 def iso_hour_key(dt: datetime) -> str:
